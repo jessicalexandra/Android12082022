@@ -16,10 +16,14 @@ import android.widget.Toast;
 
 public class VehiculoActivity extends AppCompatActivity {
 
-    EditText jetplaca,jetmarca,jetmodelo,jetvalor;
-        CheckBox jcbactivo;
-        ClsOpenHelper admin=new ClsOpenHelper( this, "concensionario.db", null,1);
-    String placa,marca,modelo,valor;
+    EditText jetplaca, jetmarca, jetmodelo, jetvalor;
+    CheckBox jcbactivo;
+    ClsOpenHelper admin = new ClsOpenHelper(this, "concensionario.db", null, 1);
+    String placa, marca, modelo, valor;
+    long resp;
+    int sw;
+
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -29,40 +33,45 @@ public class VehiculoActivity extends AppCompatActivity {
         //  ocultar tt
         getSupportActionBar().hide();
 
-        jetplaca=findViewById(R.id.etplaca);
-        jetmarca=findViewById(R.id.etmarca);
-        jetmodelo=findViewById(R.id.etmodelo);
-        jetvalor=findViewById(R.id.etvalor);
-        jcbactivo=findViewById(R.id.cbactivo);
+        jetplaca = findViewById(R.id.etplaca);
+        jetmarca = findViewById(R.id.etmarca);
+        jetmodelo = findViewById(R.id.etmodelo);
+        jetvalor = findViewById(R.id.etvalor);
+        jcbactivo = findViewById(R.id.cbactivo);
+        sw = 0;
 
 
     }
 
-    public void Guardar (View view){
+    public void Guardar(View view) {
 
-        placa=jetplaca.getText().toString();
-        marca=jetmarca.getText().toString();
-        modelo=jetmodelo.getText().toString();
-        valor=jetvalor.getText().toString();
-        if (placa.isEmpty() || marca.isEmpty() || modelo.isEmpty() || valor .isEmpty()){
+        placa = jetplaca.getText().toString();
+        marca = jetmarca.getText().toString();
+        modelo = jetmodelo.getText().toString();
+        valor = jetvalor.getText().toString();
+        if (placa.isEmpty() || marca.isEmpty() || modelo.isEmpty() || valor.isEmpty()) {
             Toast.makeText(this, "todos los datos son requeridos", Toast.LENGTH_SHORT).show();
             jetplaca.requestFocus();
-        }
-        else {
-            SQLiteDatabase database=admin.getReadableDatabase();
-            ContentValues registro =new ContentValues();
-            registro.put("placa",placa);
-            registro.put("marca",marca);
-            registro.put("modelo",modelo);
+        } else {
+            SQLiteDatabase database = admin.getReadableDatabase();
+            ContentValues registro = new ContentValues();
+            registro.put("placa", placa);
+            registro.put("marca", marca);
+            registro.put("modelo", modelo);
             registro.put("valor", Integer.parseInt(valor));
-            long resp=database.insert( "Tblvehiculo", null,registro);
 
-            if (resp>0){
-                Toast.makeText(this, "Registro guardado", Toast.LENGTH_SHORT).show();
-                 limpiar_campos();
-
-            }
+            if (sw == 0)
+                resp = database.insert("Tblvehiculo", null, registro);
             else {
+                resp = database.update("Tblvehiculo", registro, "placa='" + placa + "'", null);
+                sw = 0;
+            }
+
+            if (resp > 0) {
+                Toast.makeText(this, "Registro guardado", Toast.LENGTH_SHORT).show();
+                limpiar_campos();
+
+            } else {
                 Toast.makeText(this, "Error guardado registro", Toast.LENGTH_SHORT).show();
             }
             database.close();
@@ -70,36 +79,68 @@ public class VehiculoActivity extends AppCompatActivity {
 
     }
 
-    public void Consultar (View view){
-        placa=jetplaca.getText().toString();
-        if (placa.isEmpty()){
+    public void Consultar(View view) {
+        placa = jetplaca.getText().toString();
+        if (placa.isEmpty()) {
             Toast.makeText(this, "La placa es requerida", Toast.LENGTH_SHORT).show();
             jetplaca.requestFocus();
-        }
-        else {
-            SQLiteDatabase database=admin.getReadableDatabase();
-            Cursor fila=database.rawQuery("select * from TblVehiculo where placa = '" + placa+ "'",null);
-            if (fila.moveToNext()){
+        } else {
+            SQLiteDatabase database = admin.getReadableDatabase();
+            Cursor fila = database.rawQuery("select * from TblVehiculo where placa = '" + placa + "'", null);
+            if (fila.moveToNext()) {
+                sw = 1;
+                jetmarca.setText(fila.getString(1));
+                jetmodelo.setText(fila.getString(2));
+                jetvalor.setText(fila.getString(3));
+                if (fila.getString(4).equals("si"))
+                    jcbactivo.setChecked(true);
+                else
+                    jcbactivo.setChecked(false);
 
-            }
-            else {
+
+            } else {
                 Toast.makeText(this, "Vehiculo no registrado", Toast.LENGTH_SHORT).show();
                 database.close();
             }
         }
     }
-  private  void  limpiar_campos(){
+
+    public void Cancelar(View view) {
+        limpiar_campos();
+    }
+
+    private void limpiar_campos() {
         jetplaca.setText("");
         jetmarca.setText("");
         jetmodelo.setText("");
         jetvalor.setText("");
         jcbactivo.setChecked(false);
         jetplaca.requestFocus();
-  }
+        sw = 0;
+    }
 
+    public void Anular(View view) {
+        if (sw == 0) {
+            Toast.makeText(this, "Debes de consultar la placa", Toast.LENGTH_SHORT);
+            jetplaca.requestFocus();
+        } else {
+            SQLiteDatabase database = admin.getReadableDatabase();
+            ContentValues registro = new ContentValues();
+            registro.put("activo", "no");
+            resp = database.update("Tblvehiculo", registro, "placa = '" + placa + "'", null);
+            if (resp > 0) {
+                Toast.makeText(this, "Registro Anulado", Toast.LENGTH_SHORT).show();
+                limpiar_campos();
+            } else {
+                Toast.makeText(this, "No se pudo anular el registro", Toast.LENGTH_SHORT).show();
+            }
+            database.close();
+        }
 
-   public void  Regresar(View view){
-       Intent intmain =new Intent( this,MainActivity.class);
-       startActivity(intmain);
-   }
+    }
+
+    public void Regresar(View view) {
+        Intent intmain = new Intent(this, MainActivity.class);
+        startActivity(intmain);
+    }
 }

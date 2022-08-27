@@ -61,6 +61,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="20dp"
                 android:layout_marginBottom="20dp"
+                android:enabled="false"
                 android:text="Activo" />
 
             <LinearLayout
@@ -87,6 +88,7 @@
                     android:layout_marginTop="25dp"
                     android:layout_marginBottom="20dp"
                     android:layout_weight="1"
+                    android:onClick="Consultar"
                     android:text="Consultar" />
 
             </LinearLayout>
@@ -103,6 +105,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginEnd="10dp"
                     android:layout_weight="1"
+                    android:onClick="Anular"
                     android:text="Anular" />
 
                 <Button
@@ -111,6 +114,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginStart="10dp"
                     android:layout_weight="1"
+                    android:onClick="Cancelar"
                     android:text="Cancelar" />
             </LinearLayout>
 
